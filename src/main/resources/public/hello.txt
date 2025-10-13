@@ -1,0 +1,2 @@
+Hello Socket HTTP!aa
+这是一个纯文本文件，用于测试 text/plain MIME。
