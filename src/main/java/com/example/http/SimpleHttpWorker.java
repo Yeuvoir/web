@@ -150,7 +150,7 @@ public class SimpleHttpWorker implements Runnable {
         try {
             byte[] responseBytes = response.toBytes(keepAlive);
             out.write(responseBytes);
-            out.flush();
+            out.flush();//刷新缓冲区，即立即输出。
         } catch (IOException e) {
             System.err.println("[服务器] 发送响应失败: " + e.getMessage());
             throw e;
@@ -242,7 +242,7 @@ public class SimpleHttpWorker implements Runnable {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         int b;
         boolean seenCR = false;
-        while ((b = in.read()) != -1) {
+        while ((b = in.read()) != -1) {//按ascii码逐字节读取
             if (b == '\r') {
                 seenCR = true;
                 continue;
@@ -378,6 +378,7 @@ public class SimpleHttpWorker implements Runnable {
             return new HttpResponse().status(HttpStatus.UNAUTHORIZED)
                     .bodyText("未登录，无法上传", "text/plain; charset=UTF-8");
         }
+        //格式检查
         String ctype = req.headerFirst("content-type");
         if (ctype == null || !ctype.toLowerCase().startsWith("multipart/form-data")) {
             return new HttpResponse().status(HttpStatus.METHOD_NOT_ALLOWED)
@@ -387,7 +388,7 @@ public class SimpleHttpWorker implements Runnable {
         for (String part : ctype.split(";")) {
             part = part.trim();
             if (part.startsWith("boundary=")) {
-                boundary = part.substring(9);
+                boundary = part.substring(9);//前面的长度
                 if (boundary.startsWith("\"") && boundary.endsWith("\"")) {
                     boundary = boundary.substring(1, boundary.length()-1);
                 }

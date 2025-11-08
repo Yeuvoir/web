@@ -41,6 +41,7 @@ public class HttpRequest {
     private String method;
     
     /** 请求路径：不包含查询字符串的纯路径部分 */
+    //URL,服务器上的路径。
     private String path;
     
     /** 查询字符串：URL中?后面的部分，如"name=value&id=123" */
@@ -48,6 +49,7 @@ public class HttpRequest {
     
     /** HTTP协议版本，如"HTTP/1.1" */
     private String version;
+    //上面是请求行
     
     /** HTTP头部字段：使用LinkedHashMap保持插入顺序，支持多值头部 */
     private final Map<String, List<String>> headers = new LinkedHashMap<>();
@@ -137,8 +139,8 @@ public class HttpRequest {
      * @param value 头部值，会自动去除首尾空白字符
      */
     public void addHeader(String name, String value) {
-        String normalizedName = name.toLowerCase(Locale.ROOT);
-        headers.computeIfAbsent(normalizedName, k -> new ArrayList<>()).add(value.trim());
+        String normalizedName = name.toLowerCase(Locale.ROOT);//name不区分大小写,统一为小写
+        headers.computeIfAbsent(normalizedName, k -> new ArrayList<>()).add(value.trim());//用来处理NormalisedName为null的情况
     }
 
     // ========== 头部访问方法 ==========
@@ -179,7 +181,7 @@ public class HttpRequest {
      */
     public void setBody(byte[] body) {
         this.body = body != null ? body : new byte[0];
-        
+
         // 自动解析表单数据
         String contentType = headerFirst("content-type");
         if (contentType != null && 
@@ -232,7 +234,7 @@ public class HttpRequest {
      */
     private String urlDecode(String encoded) {
         try {
-            return java.net.URLDecoder.decode(encoded, java.nio.charset.StandardCharsets.UTF_8);
+            return java.net.URLDecoder.decode(encoded, java.nio.charset.StandardCharsets.UTF_8);//url一开始是%20这种。
         } catch (Exception e) {
             // 解码失败时返回原字符串
             return encoded;

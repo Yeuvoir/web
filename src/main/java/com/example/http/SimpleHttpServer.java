@@ -43,9 +43,7 @@ public class SimpleHttpServer {
      */
     public SimpleHttpServer(int port) {
         this.port = port;
-        
-        // 计算线程池大小
-        int availableProcessors = Runtime.getRuntime().availableProcessors();
+        int availableProcessors = Runtime.getRuntime().availableProcessors();//得到jvm的可用处理器数 q
         int threadPoolSize = availableProcessors * 2 + 2;
         
         // 创建固定大小的线程池
@@ -180,6 +178,7 @@ public class SimpleHttpServer {
     /**
      * 关闭服务器资源
      */
+    //等价于直接shutdownnow
     private void shutdownServer() {
         System.out.println("正在关闭线程池...");
         

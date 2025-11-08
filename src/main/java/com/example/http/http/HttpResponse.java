@@ -66,7 +66,7 @@ public class HttpResponse {
      */
     public HttpResponse header(String name, String value) { 
         headers.put(name, value); 
-        return this; 
+        return this; //即链式调用
     }
     
     /**
@@ -116,6 +116,7 @@ public class HttpResponse {
      * @param keepAlive 是否保持连接（HTTP Keep-Alive）
      * @return 完整HTTP响应的字节数组
      */
+    //本类中的主函数，
     public byte[] toBytes(boolean keepAlive) {
         // 构建响应头部字符串
         StringBuilder headerBuilder = new StringBuilder();
@@ -136,7 +137,7 @@ public class HttpResponse {
         // 添加所有头部
         headers.forEach((name, value) -> 
             headerBuilder.append(name).append(": ").append(value).append("\r\n"));
-        
+        //lambda表达式，匿名函数作为函数参数
         // 头部结束标记
         headerBuilder.append("\r\n");
         
