@@ -159,7 +159,146 @@ java -jar target/simple-http-socket-1.0-SNAPSHOT.jar server 8080[可选]
 ```bash
 java -jar target/simple-http-socket-1.0-SNAPSHOT.jar client
 ```
+具体演示步骤
 
-|TODO|
-|---|
-|具体演示步骤|
+## 1.注册
+
+### 请求报文
+
+POST /register HTTP/1.1
+
+Host: localhost
+
+User-Agent: SimpleSocketClient/1.0
+
+Accept: */*
+
+Content-Type: application/x-www-form-urlencoded
+
+Content-Length: 27
+
+Connection: keep-alive
+
+username=test&password=test
+
+#### 请求行: 
+POST /register HTTP/1.1
+
+方法: POST - 提交数据到服务器
+
+路径: /register - 请求的资源路径
+
+版本: HTTP/1.1 - HTTP协议版本
+
+#### 请求头:
+
+Host: localhost - 目标主机
+
+User-Agent: SimpleSocketClient/1.0 - 客户端信息
+
+Accept: */* - 可接受任何类型的响应
+
+Content-Type: application/x-www-form-urlencoded - 请求体格式
+
+Content-Length: 27 - 请求体长度
+
+Connection: keep-alive - 保持连接
+
+#### 空行: 分隔头部和主体
+
+#### 请求体: 
+username=test&password=test
+
+表单数据，包含用户名和密码
+### 响应报文
+HTTP/1.1 200 OK
+
+Content-Type: text/plain; charset=UTF-8
+
+Content-Length: 12
+
+Connection: keep-alive
+状态行: HTTP/1.1 200 OK
+
+版本: HTTP/1.1 - HTTP协议版本
+
+状态码: 200 - 表示请求成功
+
+状态短语: OK - 状态码的文本描述
+
+响应头:
+
+Content-Type: text/plain; charset=UTF-8
+
+内容类型: 纯文本
+
+字符编码: UTF-8（支持中文）
+
+Content-Length: 12
+
+响应体长度：12字节（"注册成功"在UTF-8编码下占12字节）
+
+Connection: keep-alive - 保持连接，可复用
+
+空行: 分隔头部和主体
+
+响应体: 注册成功
+
+服务器返回的实际内容
+
+纯文本格式，告知用户注册操作成功
+
+## 2.登录
+
+请求报文与login大同小异
+
+响应报文多了一行Set-Cookie: SID=b63675ed-f809-4437-aa1f-09d099a91e21; Path=/; HttpOnly
+
+在客户端存储数据，用于维持HTTP状态，让服务器能够识别用户。
+
+Cookie名称和值：
+
+SID=b63675ed-f809-4437-aa1f-09d099a91e21
+
+SID - Cookie名称
+
+b63675ed-f809-4437-aa1f-09d099a91e21 - Cookie值，这是一个UUID格式的字符串
+
+属性：
+
+Path=/ - Cookie的作用路径
+
+HttpOnly - 安全属性 防止javascript读取
+## 上传文件
+#### 请求报文
+POST /upload/test.pdf HTTP/1.1
+
+Host: localhost
+
+User-Agent: SimpleSocketClient/1.0
+
+Accept: */*
+
+Content-Type: multipart/form-data; boundary=----WSOCK1763355422477
+
+Content-Length: 1407
+
+Cookie: SID=afcd8746-c316-42d5-8ab7-1d4a33f34c2b
+
+Connection: keep-alive
+
+------WSOCK1763355422477
+
+Content-Disposition: form-data; name="file"; filename="test.pdf"
+
+Content-Type: application/octet-stream
+
+[文件内容: 1243 bytes]
+
+上传文件到服务器的 /upload/test.pdf 路径
+
+使用multipart格式，边界字符串为 ----WSOCK1763355422477
+
+------WSOCK1763355422477--
+#### 响应报文
+ 与上面大同小异
