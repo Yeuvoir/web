@@ -47,20 +47,85 @@ HTTP（超文本传输协议）是基于请求-响应模式的应用层协议，
   Content-Length: 0
   Connection: keep-alive
   ```
+- **302 临时重定向响应示例**
+  ```
+  HTTP/1.1 302 Found
+  Location: /temp-redirect
+  Content-Length: 0
+  Server: SimpleSocketServer/1.0
+  Connection: keep-alive
+  ```
 
+- **304 未修改响应示例**
+  ```
+  HTTP/1.1 304 Not Modified
+  ETag: "abc123"
+  Date: Mon, 15 Nov 2023 10:00:00 GMT
+  Server: SimpleSocketServer/1.0
+  Connection: keep-alive
+  ```
+
+
+
+
+- **401 未授权响应示例**
+  ```
+  HTTP/1.1 401 Unauthorized
+  WWW-Authenticate: Basic realm="Restricted Area"
+  Content-Type: text/plain; charset=UTF-8
+  Content-Length: 20
+  Server: SimpleSocketServer/1.0
+  Connection: keep-alive
+
+  需要身份验证访问
+  ```
+
+- **404 未找到响应示例**
+  ```
+  HTTP/1.1 404 Not Found
+  Content-Type: text/plain; charset=UTF-8
+  Content-Length: 25
+  Server: SimpleSocketServer/1.0
+  Connection: keep-alive
+
+  请求的资源不存在
+  ```
+- **405 方法不允许响应示例**
+  ```
+  HTTP/1.1 405 Method Not Allowed
+  Allow: GET, POST
+  Content-Type: text/plain; charset=UTF-8
+  Content-Length: 25
+  Server: SimpleSocketServer/1.0
+  Connection: keep-alive
+
+  不支持的HTTP请求方法
+  ```
+
+- **500 服务器内部错误响应示例**
+  ```
+  HTTP/1.1 500 Internal Server Error
+  Content-Type: text/plain; charset=UTF-8
+  Content-Length: 35
+  Server: SimpleSocketServer/1.0
+  Connection: keep-alive
+
+  服务器内部错误，请稍后重试
+  ```
 
 ## 项目结构与文件功能
 
 ### 核心文件清单
-| 文件路径 | 功能概述 |
-|----------|----------|
-| `Main.java` | 程序入口，解析命令行参数并启动服务器/客户端 |
-| `SimpleHttpServer.java` | HTTP 服务器主类，负责监听端口、管理连接和线程池 |
-| `SimpleHttpWorker.java` | 处理单个客户端连接的请求，解析请求并生成响应 |
-| `http/HttpRequest.java` | 封装 HTTP 请求，解析方法、路径、头部、表单参数等 |
-| `http/HttpResponse.java` | 构建 HTTP 响应，包含状态码、头部和体部，支持序列化 |
-| `HttpClientGui.java` | 客户端 GUI 实现，支持发送请求、处理响应和重定向 |
-| `src/main/resources/public/` | 静态资源目录（HTML、图片、文本文件等） |
+| 文件路径                         | 功能概述                         |
+|------------------------------|------------------------------|
+| `Main.java`                  | 程序入口，解析命令行参数并启动服务器/客户端       |
+| `SimpleHttpServer.java`      | HTTP 服务器主类，负责监听端口、管理连接和线程池   |
+| `SimpleHttpWorker.java`      | 处理单个客户端连接的请求，解析请求并生成响应       |
+| `http/HttpRequest.java`      | 封装 HTTP 请求，解析方法、路径、头部、表单参数等  |
+| `http/HttpResponse.java`     | 构建 HTTP 响应，包含状态码、头部和体部，支持序列化 |
+| `HttpClientGui.java`         | 客户端 GUI 实现，支持发送请求、处理响应和重定向   |
+| `src/main/resources/public/` | 静态资源目录（HTML、图片、文本文件等）        |
+| `local`                      | 客户端的资源（HTML、图片、文本文件等）                       |
 
 
 ### 详细功能说明
@@ -164,22 +229,16 @@ java -jar target/simple-http-socket-1.0-SNAPSHOT.jar client
 ## 1.注册
 
 ### 请求报文
-
+```
 POST /register HTTP/1.1
-
 Host: localhost
-
 User-Agent: SimpleSocketClient/1.0
-
 Accept: */*
-
 Content-Type: application/x-www-form-urlencoded
-
 Content-Length: 27
-
 Connection: keep-alive
-
 username=test&password=test
+```
 
 #### 请求行: 
 POST /register HTTP/1.1
@@ -211,13 +270,12 @@ username=test&password=test
 
 表单数据，包含用户名和密码
 ### 响应报文
+```
 HTTP/1.1 200 OK
-
 Content-Type: text/plain; charset=UTF-8
-
 Content-Length: 12
-
 Connection: keep-alive
+```
 状态行: HTTP/1.1 200 OK
 
 版本: HTTP/1.1 - HTTP协议版本
@@ -271,29 +329,20 @@ Path=/ - Cookie的作用路径
 HttpOnly - 安全属性 防止javascript读取
 ## 上传文件
 #### 请求报文
+```
 POST /upload/test.pdf HTTP/1.1
-
 Host: localhost
-
 User-Agent: SimpleSocketClient/1.0
-
 Accept: */*
-
 Content-Type: multipart/form-data; boundary=----WSOCK1763355422477
-
 Content-Length: 1407
-
 Cookie: SID=afcd8746-c316-42d5-8ab7-1d4a33f34c2b
-
 Connection: keep-alive
-
 ------WSOCK1763355422477
-
 Content-Disposition: form-data; name="file"; filename="test.pdf"
-
 Content-Type: application/octet-stream
-
 [文件内容: 1243 bytes]
+```
 
 上传文件到服务器的 /upload/test.pdf 路径
 
@@ -302,3 +351,23 @@ Content-Type: application/octet-stream
 ------WSOCK1763355422477--
 #### 响应报文
  与上面大同小异
+## GET
+#### 请求报文
+```
+GET /test.pdf HTTP/1.1
+Host: localhost
+User-Agent: SimpleSocketClient/1.0
+Accept: */*
+If-Modified-Since: Mon, 17 Nov 2025 12:57:02 CST
+Cookie: SID=4d7ae61a-5af4-4f1d-a789-b3f3170be723
+Connection: keep-alive
+```
+#### 响应报文
+```
+HTTP/1.1 304 Not Modified
+Date: Mon, 17 Nov 2025 23:11:03 CST
+Last-Modified: Mon, 17 Nov 2025 12:57:02 CST
+Server: SimpleSocketServer/1.0
+Connection: keep-alive
+Content-Length: 0
+```
