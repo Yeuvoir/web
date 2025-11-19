@@ -101,7 +101,24 @@ HTTP（超文本传输协议）是基于请求-响应模式的应用层协议，
 
   不支持的HTTP请求方法
   ```
+- **409 User重复注册**
+  ```
+  HTTP/1.1 409 Conflict
+  Content-Type: text/plain; charset=UTF-8
+  Content-Length: 44
+  Connection: keep-alive
 
+  注册失败(可能已存在或参数错误)
+  ```
+- **409 上传文件非法命名**
+  ```
+  HTTP/1.1 422 Unprocessable Entity
+  Content-Type: text/plain; charset=UTF-8
+  Content-Length: 15
+  Connection: keep-alive
+
+  非法文件名
+  ```
 - **500 服务器内部错误响应示例**
   ```
   HTTP/1.1 500 Internal Server Error
