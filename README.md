@@ -21,7 +21,7 @@ HTTP（超文本传输协议）是基于请求-响应模式的应用层协议，
     - 体部（Body）：服务器返回的数据（如 HTML 内容、图片二进制数据）
 
 - **GET 请求示例**
-  ```
+  ```http
   GET /hello.txt HTTP/1.1
   Host: localhost:8080
   User-Agent: SimpleSocketClient/1.0
@@ -29,7 +29,7 @@ HTTP（超文本传输协议）是基于请求-响应模式的应用层协议，
   ```
 
 - **200 响应示例**
-  ```
+  ```http
   HTTP/1.1 200 OK
   Content-Type: text/plain; charset=UTF-8
   Content-Length: 30
@@ -41,7 +41,7 @@ HTTP（超文本传输协议）是基于请求-响应模式的应用层协议，
   ```
 
 - **301 重定向响应示例**
-  ```
+  ```http
   HTTP/1.1 301 Moved Permanently
   Location: /new
   Content-Length: 0
@@ -49,7 +49,7 @@ HTTP（超文本传输协议）是基于请求-响应模式的应用层协议，
   ```
   - 测试方式：访问``http://localhost:8080/old``资源
 - **302 临时重定向响应示例**
-  ```
+  ```http
   HTTP/1.1 302 Found
   Location: /temp-redirect
   Content-Length: 0
@@ -59,7 +59,7 @@ HTTP（超文本传输协议）是基于请求-响应模式的应用层协议，
   - 测试方式：访问``http://localhost:8080/temp``资源
 
 - **304 未修改响应示例**
-  ```
+  ```http
   HTTP/1.1 304 Not Modified
   ETag: "abc123"
   Date: Mon, 15 Nov 2023 10:00:00 GMT
@@ -71,7 +71,7 @@ HTTP（超文本传输协议）是基于请求-响应模式的应用层协议，
 
 
 - **401 未授权响应示例**
-  ```
+  ```http
   HTTP/1.1 401 Unauthorized
   WWW-Authenticate: Basic realm="Restricted Area"
   Content-Type: text/plain; charset=UTF-8
@@ -83,7 +83,7 @@ HTTP（超文本传输协议）是基于请求-响应模式的应用层协议，
   ```
 
 - **404 未找到响应示例**
-  ```
+  ```http
   HTTP/1.1 404 Not Found
   Content-Type: text/plain; charset=UTF-8
   Content-Length: 25
@@ -93,7 +93,7 @@ HTTP（超文本传输协议）是基于请求-响应模式的应用层协议，
   请求的资源不存在
   ```
 - **405 方法不允许响应示例**
-  ```
+  ```http
   HTTP/1.1 405 Method Not Allowed
   Allow: GET, POST
   Content-Type: text/plain; charset=UTF-8
@@ -105,7 +105,7 @@ HTTP（超文本传输协议）是基于请求-响应模式的应用层协议，
   ```
   - 测试方式：使用没有实现的``DELET``方法
 - **409 User重复注册**
-  ```
+  ```http
   HTTP/1.1 409 Conflict
   Content-Type: text/plain; charset=UTF-8
   Content-Length: 44
@@ -114,7 +114,7 @@ HTTP（超文本传输协议）是基于请求-响应模式的应用层协议，
   注册失败(可能已存在或参数错误)
   ```
 - **422 上传文件非法命名**
-  ```
+  ```http
   HTTP/1.1 422 Unprocessable Entity
   Content-Type: text/plain; charset=UTF-8
   Content-Length: 15
@@ -123,7 +123,7 @@ HTTP（超文本传输协议）是基于请求-响应模式的应用层协议，
   非法文件名
   ```
 - **500 服务器内部错误响应示例**
-  ```
+  ```http
   HTTP/1.1 500 Internal Server Error
   Content-Type: text/plain; charset=UTF-8
   Content-Length: 35
@@ -134,7 +134,23 @@ HTTP（超文本传输协议）是基于请求-响应模式的应用层协议，
   ```
 
 ## 项目结构与文件功能
+##  项目结构
 
+```
+src/main/java/com/example/http/
+├── Main.java                
+├── SimpleHttpServer.java    
+├── SimpleHttpWorker.java    
+├── HttpClientGui.java       
+├── http/                    
+│   ├── HttpRequest.java     
+│   └── HttpResponse.java    
+└── user/                    
+    └── UserService.java     
+
+src/main/resources/public/   
+local
+```
 ### 核心文件清单
 | 文件路径                         | 功能概述                         |
 |------------------------------|------------------------------|
@@ -220,13 +236,20 @@ Swing 实现的客户端 GUI，支持发送 GET/POST 请求，处理重定向、
 - `hello.txt`：纯文本测试文件，验证 text/plain MIME 类型
 - `test.png`：图片文件，验证二进制文件传输
 
-## 功能特点
-- 支持 HTTP/1.1 长连接（Keep-Alive）
-- 处理静态资源（HTML、文本、图片等）
-- 支持 301 永久重定向和 302 临时重定向
-- 实现用户注册/登录功能（基于 Session 和 Cookie）
-- 支持文件上传（保存到静态资源目录）
-- 客户端支持缓存（If-Modified-Since 头部）和 Cookie 持久化
+##  功能特性
+
+### HTTP 服务器
+- **多线程处理**：使用线程池处理并发连接，高效稳定。
+- **HTTP 协议支持**：支持 HTTP/1.1 协议，包括长连接（Keep-Alive）。
+- **静态资源服务**：支持 HTML、JSON、文本等静态文件的访问。
+- **RESTful 风格**：支持 GET、POST 等基本请求方法。
+- **无依赖**：仅使用 Java 标准库，无任何第三方依赖。
+
+### HTTP 客户端 (GUI)
+- **图形化界面**：基于 Swing 的直观操作界面。
+- **请求构建**：支持自定义 HTTP 方法、路径、Header 和 Body。
+- **连接池**：内置连接池管理，支持复用 TCP 连接。
+- **实时日志**：清晰展示请求报文和响应报文详情。
 
 ## 运行方式 (Maven)
 
@@ -242,14 +265,14 @@ java -jar target/simple-http-socket-1.0-SNAPSHOT.jar server 8080[可选]
 
 **启动客户端 GUI：**
 ```bash
-java -jar target/simple-http-socket-1.0-SNAPSHOT.jar client
+java -jar target/simple-http-socket-1.0-SNAPSHOT.jar client 8080[可选]
 ```
 具体演示步骤
 
 ## 1.注册
 
 ### 请求报文
-```
+```http
 POST /register HTTP/1.1
 Host: localhost
 User-Agent: SimpleSocketClient/1.0
@@ -349,7 +372,7 @@ Path=/ - Cookie的作用路径
 HttpOnly - 安全属性 防止javascript读取
 ## 上传文件
 #### 请求报文
-```
+```http
 POST /upload/test.pdf HTTP/1.1
 Host: localhost
 User-Agent: SimpleSocketClient/1.0
