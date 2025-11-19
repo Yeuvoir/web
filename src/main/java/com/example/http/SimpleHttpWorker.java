@@ -286,7 +286,7 @@ public class SimpleHttpWorker implements Runnable {
         // 测试 500 错误的端点
         if ("/test500".equals(path)) {
             try {
-                // 故意触发异常
+                // 模拟服务器内部除0异常
                 throw new ArithmeticException("/ by zero");
             } catch (Exception e) {
                 return new HttpResponse().status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -309,18 +309,18 @@ public class SimpleHttpWorker implements Runnable {
             }
         }
 
-        // 仅支持 GET/POST 访问静态/简单动态
-        if (!method.equalsIgnoreCase("GET") && !method.equalsIgnoreCase("POST")) {
-            return new HttpResponse().status(HttpStatus.METHOD_NOT_ALLOWED)
-                    .bodyText("Method Not Allowed", "text/plain; charset=UTF-8");
-        }
-
         // 鉴权：除登录/注册/重定向入口外，静态资源需已登录
         String username = authenticate(req);
         if (username == null) {
             return new HttpResponse().status(HttpStatus.UNAUTHORIZED)
                     .header("WWW-Authenticate", "Cookie realm=\"Simple\"")
                     .bodyText("401 Unauthorized - 请先登录", "text/plain; charset=UTF-8");
+        }
+
+        // 仅支持 GET/POST 访问静态/简单动态
+        if (!method.equalsIgnoreCase("GET") && !method.equalsIgnoreCase("POST")) {
+            return new HttpResponse().status(HttpStatus.METHOD_NOT_ALLOWED)
+                    .bodyText("Method Not Allowed", "text/plain; charset=UTF-8");
         }
 
         // 根路径 -> index.html
@@ -352,7 +352,7 @@ public class SimpleHttpWorker implements Runnable {
         if (ok) {
             return new HttpResponse().status(HttpStatus.OK).bodyText("注册成功", "text/plain; charset=UTF-8");
         }
-        return new HttpResponse().status(HttpStatus.INTERNAL_SERVER_ERROR)
+        return new HttpResponse().status(HttpStatus.CONFLICT)
                 .bodyText("注册失败(可能已存在或参数错误)", "text/plain; charset=UTF-8");
     }
 
@@ -367,7 +367,7 @@ public class SimpleHttpWorker implements Runnable {
                     .header("Set-Cookie", SESSION_COOKIE + "=" + sid + "; Path=/; HttpOnly")
                     .bodyText("登录成功", "text/plain; charset=UTF-8");
         }
-        return new HttpResponse().status(HttpStatus.INTERNAL_SERVER_ERROR)
+        return new HttpResponse().status(HttpStatus.UNAUTHORIZED)
                 .bodyText("登录失败(用户名或密码错误)", "text/plain; charset=UTF-8");
     }
 
@@ -441,7 +441,7 @@ public class SimpleHttpWorker implements Runnable {
             }
             // 文件名校验
             if (!filename.matches("[a-zA-Z0-9._-]{1,64}")) {
-                return new HttpResponse().status(HttpStatus.METHOD_NOT_ALLOWED)
+                return new HttpResponse().status(HttpStatus.UNPROCESSABLE_ENTITY)
                         .bodyText("非法文件名", "text/plain; charset=UTF-8");
             }
             // 保存文件到静态资源目录，以便通过 HTTP 直接访问
@@ -463,12 +463,12 @@ public class SimpleHttpWorker implements Runnable {
             return new HttpResponse().status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .bodyText("未解析到文件", "text/plain; charset=UTF-8");
         }
-        // 构建返回的URL，格式为 /local/文件名
+        // 构建返回的URL，格式为 /resource/public/文件名
         StringBuilder responseText = new StringBuilder("上传成功:\n");
         for (String fileInfo : saved) {
             // 从 fileInfo 中提取文件名（去掉大小信息）
             String filename = fileInfo.split("\\(")[0];
-            responseText.append("/local/").append(filename);
+            responseText.append("/resource/public/").append(filename);
         }
         return new HttpResponse().status(HttpStatus.OK)
                 .bodyText(responseText.toString(), "text/plain; charset=UTF-8");

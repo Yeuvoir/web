@@ -77,7 +77,7 @@ public class HttpClientGui {
         frame.setSize(1200, 800);
 
     JTextField urlField = new JTextField("http://localhost:" + defaultPort + "/");
-        JComboBox<String> methodBox = new JComboBox<>(new String[]{"GET", "POST"});
+        JComboBox<String> methodBox = new JComboBox<>(new String[]{"GET", "POST", "DELETE"});
         JTextArea requestArea = new JTextArea(8, 40);
         JTextArea responseArea = new JTextArea();
         responseArea.setEditable(false);
@@ -301,145 +301,6 @@ public class HttpClientGui {
         frame.setLayout(new BorderLayout());
         frame.add(mainSplit, BorderLayout.CENTER);
         frame.setVisible(true);
-    }
-
-    /**
-     * 发送 HTTP 请求，处理最多5次重定向。
-     */
-    private static String sendHttp(String method, String url, String body, Map<String,String> cache, Map<String,String> cookies, int redirectCount) throws Exception {
-        if (redirectCount > 5) {
-            return "超过最大重定向次数";
-        }
-        URI uri = URI.create(url);
-        String host = uri.getHost();
-        int port = uri.getPort() == -1 ? 80 : uri.getPort();
-        String path = uri.getRawPath();
-        if (path == null || path.isEmpty()) path = "/";
-        if (uri.getRawQuery() != null) path += "?" + uri.getRawQuery();
-
-    StringBuilder req = new StringBuilder();
-        req.append(method).append(' ').append(path).append(" HTTP/1.1\r\n");
-        req.append("Host: ").append(host).append("\r\n");
-        req.append("User-Agent: SimpleSocketClient/1.0\r\n");
-        req.append("Accept: */*\r\n");
-        // 缓存支持 If-Modified-Since
-        String last = cache.get(url);
-        if (last != null) {
-            req.append("If-Modified-Since: ").append(last).append("\r\n");
-        }
-        byte[] bodyBytes = new byte[0];
-        if ("POST".equalsIgnoreCase(method) && body != null && !body.isEmpty()) {
-            bodyBytes = body.getBytes(StandardCharsets.UTF_8);
-            req.append("Content-Type: application/x-www-form-urlencoded\r\n");
-            req.append("Content-Length: ").append(bodyBytes.length).append("\r\n");
-        }
-        // 附带 Cookie
-        if (!cookies.isEmpty()) {
-            StringBuilder cb = new StringBuilder();
-            cookies.forEach((k,v)-> {
-                if (cb.length()>0) cb.append("; ");
-                cb.append(k).append("=").append(v);
-            });
-            req.append("Cookie: ").append(cb).append("\r\n");
-        }
-        req.append("Connection: keep-alive\r\n\r\n");
-
-        try (Socket socket = new Socket()) {
-                System.out.println("[客户端] 创建新 Socket 连接 -> " + host + ":" + port);
-                socket.connect(new java.net.InetSocketAddress(host, port), 4000); // 连接超时 4s
-                socket.setSoTimeout(5000); // 读超时 5s
-            OutputStream out = socket.getOutputStream();
-            out.write(req.toString().getBytes(StandardCharsets.US_ASCII));
-            if (bodyBytes.length > 0) out.write(bodyBytes);
-            out.flush();
-            InputStream in = socket.getInputStream();
-            // 读取头部
-            ByteArrayOutputStream headerBuf = new ByteArrayOutputStream();
-            int state = 0; // 连续 \r\n\r\n 判断
-            while (true) {
-                int b = in.read();
-                if (b == -1) break;
-                headerBuf.write(b);
-                // 状态机检测头结束
-                if (state == 0 && b == '\r') state = 1; else if (state == 1 && b == '\n') state = 2;
-                else if (state == 2 && b == '\r') state = 3; else if (state == 3 && b == '\n') break; else state = 0;
-                if (headerBuf.size() > 32_768) throw new IOException("Header too large");
-            }
-            String head = headerBuf.toString(StandardCharsets.US_ASCII);
-            String[] lines = head.split("\r\n");
-            // 解析 Content-Length
-            int contentLength = -1;
-            for (String l : lines) {
-                if (l.toLowerCase().startsWith("content-length:")) {
-                    try { contentLength = Integer.parseInt(l.substring(15).trim()); } catch (NumberFormatException ignore) {}
-                }
-            }
-            byte[] bodyResp = new byte[0];
-            if (contentLength > 0) {
-                bodyResp = in.readNBytes(contentLength);
-            } else {
-                // 无 Content-Length：尝试读到超时或关闭（短小响应）
-                socket.setSoTimeout(800); // 缩短
-                ByteArrayOutputStream rest = new ByteArrayOutputStream();
-                try {
-                    byte[] tmp = new byte[1024];
-                    int r;
-                    while ((r = in.read(tmp)) != -1) {
-                        rest.write(tmp,0,r);
-                        if (rest.size() > 1024*1024) break; // 上限1MB
-                    }
-                } catch (IOException timeout) {
-                    // ignore read timeout
-                }
-                bodyResp = rest.toByteArray();
-            }
-            String raw = head + new String(bodyResp, StandardCharsets.UTF_8);
-            // 解析状态行
-            if (lines.length > 0) {
-                String statusLine = lines[0];
-                if (statusLine.contains(" 301 ") || statusLine.contains(" 302 ")) {
-                    // 找 Location
-                    String loc = null;
-                    for (String l : lines) {
-                        if (l.toLowerCase().startsWith("location:")) {
-                            loc = l.substring(9).trim();
-                            break;
-                        }
-                    }
-                    if (loc != null) {
-                        if (!loc.startsWith("http")) {
-                            // 相对 -> 拼
-                            String prefix = uri.getScheme() + "://" + host + (uri.getPort()==-1 ? "" : (":" + uri.getPort()));
-                            loc = prefix + loc;
-                        }
-                        return raw + "\n\n-- 自动跟随 -> " + loc + " --\n" +
-                                sendHttp(method, loc, body, cache, cookies, redirectCount + 1);
-                    }
-                } else if (statusLine.contains(" 304 ")) {
-                    return raw + "\n(使用缓存的 Last-Modified: " + last + ")";
-                }
-            }
-            // 抽取 Last-Modified 更新缓存
-            for (String l : lines) {
-                if (l.toLowerCase().startsWith("last-modified:")) {
-                    cache.put(url, l.substring(14).trim());
-                }
-            }
-            // 解析 Set-Cookie
-            for (String l : lines) {
-                if (l.toLowerCase().startsWith("set-cookie:")) {
-                    String val = l.substring(11).trim();
-                    String pair = val.split(";",2)[0];
-                    int eq = pair.indexOf('=');
-                    if (eq>0) {
-                        String ck = pair.substring(0,eq).trim();
-                        String cv = pair.substring(eq+1).trim();
-                        cookies.put(ck, cv);
-                    }
-                }
-            }
-            return raw;
-        }
     }
 
     /**
@@ -727,7 +588,8 @@ public class HttpClientGui {
                     reqText.append(body);
                     
                     String requestText = reqText.toString();
-                    String responseText = sendHttp("POST", finalUrl, body, new HashMap<>(), cookies, 0);
+                    HttpResponseData responseData = sendHttpWithBytes("POST", finalUrl, body, new HashMap<>(), cookies, 0);
+                    String responseText = responseData.fullText;
                     
                     return new HttpRequestResponsePair(requestText, responseText);
                 }
@@ -792,7 +654,8 @@ public class HttpClientGui {
                     reqText.append("Connection: keep-alive\r\n\r\n");
                     
                     String requestText = reqText.toString();
-                    String responseText = sendHttp("POST", finalUrl, "", new HashMap<>(), cookies, 0);
+                    HttpResponseData responseData = sendHttpWithBytes("POST", finalUrl, "", new HashMap<>(), cookies, 0);
+                    String responseText = responseData.fullText;
                     
                     return new HttpRequestResponsePair(requestText, responseText);
                 }

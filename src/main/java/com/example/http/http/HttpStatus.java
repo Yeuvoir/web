@@ -121,6 +121,28 @@ public enum HttpStatus {
      * - RESTful API中方法使用错误
      */
     METHOD_NOT_ALLOWED(405, "Method Not Allowed"),
+
+    /**
+     * 409 Conflict
+     * 
+     * 请求与服务器当前状态冲突。
+     * 
+     * 使用场景：
+     * - 注册时用户名已存在
+     * - 资源状态冲突
+     */
+    CONFLICT(409, "Conflict"),
+
+    /**
+     * 422 Unprocessable Entity
+     * 
+     * 请求格式正确，但是由于含有语义错误，无法响应。
+     * 
+     * 使用场景：
+     * - 上传文件时文件名非法
+     * - 提交的数据验证失败
+     */
+    UNPROCESSABLE_ENTITY(422, "Unprocessable Entity"),
     
     // ========== 5xx 服务器错误状态码 ==========
     
