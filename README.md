@@ -47,6 +47,7 @@ HTTP（超文本传输协议）是基于请求-响应模式的应用层协议，
   Content-Length: 0
   Connection: keep-alive
   ```
+  - 测试方式：访问``http://localhost:8080/old``资源
 - **302 临时重定向响应示例**
   ```
   HTTP/1.1 302 Found
@@ -55,6 +56,7 @@ HTTP（超文本传输协议）是基于请求-响应模式的应用层协议，
   Server: SimpleSocketServer/1.0
   Connection: keep-alive
   ```
+  - 测试方式：访问``http://localhost:8080/temp``资源
 
 - **304 未修改响应示例**
   ```
@@ -64,7 +66,7 @@ HTTP（超文本传输协议）是基于请求-响应模式的应用层协议，
   Server: SimpleSocketServer/1.0
   Connection: keep-alive
   ```
-
+  - 测试方式：重复请求相同资源（已经缓存）
 
 
 
@@ -101,6 +103,7 @@ HTTP（超文本传输协议）是基于请求-响应模式的应用层协议，
 
   不支持的HTTP请求方法
   ```
+  - 测试方式：使用没有实现的``DELET``方法
 - **409 User重复注册**
   ```
   HTTP/1.1 409 Conflict
@@ -110,7 +113,7 @@ HTTP（超文本传输协议）是基于请求-响应模式的应用层协议，
 
   注册失败(可能已存在或参数错误)
   ```
-- **409 上传文件非法命名**
+- **422 上传文件非法命名**
   ```
   HTTP/1.1 422 Unprocessable Entity
   Content-Type: text/plain; charset=UTF-8
