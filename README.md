@@ -396,7 +396,7 @@ Content-Type: application/octet-stream
  与上面大同小异
 ## GET
 #### 请求报文
-```
+```http
 GET /test.pdf HTTP/1.1
 Host: localhost
 User-Agent: SimpleSocketClient/1.0
@@ -406,7 +406,7 @@ Cookie: SID=4d7ae61a-5af4-4f1d-a789-b3f3170be723
 Connection: keep-alive
 ```
 #### 响应报文
-```
+```http
 HTTP/1.1 304 Not Modified
 Date: Mon, 17 Nov 2025 23:11:03 CST
 Last-Modified: Mon, 17 Nov 2025 12:57:02 CST
