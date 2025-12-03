@@ -27,7 +27,10 @@ jobs:
             # 1. 进入项目目录
             cd ~/web
             echo "当前目录: $(pwd)"
-            
+            export JAVA_HOME=/home/group2/.local/java/zulu17.48.15-ca-jdk17.0.10-linux_x64
+            export PATH=$JAVA_HOME/bin:$PATH
+            echo "当前JAVA_HOME: $JAVA_HOME"
+            java -version
             # 2. 拉取远程仓库的最新代码
             # 注意：如果这是首次clone的目录，请确保已关联远程仓库。
             # 你可以先在服务器上执行：git remote add origin <你的仓库URL>
