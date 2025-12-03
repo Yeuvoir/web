@@ -52,7 +52,7 @@ public class Main {
         }
         
         System.out.println("正在启动HTTP服务器，端口: " + port);
-        System.out.println("访问地址: http://localhost:" + port + "/");
+        
         // 创建服务器并启动
         SimpleHttpServer server = new SimpleHttpServer(port);
         server.start();
