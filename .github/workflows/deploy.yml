@@ -36,9 +36,5 @@ jobs:
             echo "代码已更新至最新版本。"
             
             # 3. 执行Maven构建命令
-            # 此处使用了 -DskipTests 跳过测试，如需要运行测试请移除
-            mvn clean package -DskipTests
+            mvn clean package 
             
-            echo "=== Maven 构建完成 ==="
-            # 可选：列出生成的JAR包，确认构建成功
-            ls -la target/*.jar 2>/dev/null && echo "JAR文件生成成功。" || echo "未找到JAR文件。"
