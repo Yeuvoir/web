@@ -1,0 +1,44 @@
+name: Auto Build on Server
+
+on:
+  push:
+    branches: [ main, master ] # 当代码推送到 main 或 master 分支时触发
+  # 你也可以取消下一行的注释，以允许在GitHub页面上手动触发此工作流
+  # workflow_dispatch:
+
+jobs:
+  build-on-server:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout project code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 获取完整的 Git 历史记录，便于后续操作
+
+      - name: SSH to Server and Build
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.REMOTE_HOST }} # 服务器IP: 140.210.142.61
+          username: ${{ secrets.REMOTE_USER }} # 用户名: group2
+          password: ${{ secrets.SSH_PASSWORD }} # 密码: 1234567890
+          port: 22 # SSH端口，默认为22
+          script: |
+            echo "=== 连接到服务器，开始构建任务 ==="
+            # 1. 进入项目目录
+            cd ~/web
+            echo "当前目录: $(pwd)"
+            
+            # 2. 拉取远程仓库的最新代码
+            # 注意：如果这是首次clone的目录，请确保已关联远程仓库。
+            # 你可以先在服务器上执行：git remote add origin <你的仓库URL>
+            git fetch origin
+            git reset --hard origin/main || git reset --hard origin/master
+            echo "代码已更新至最新版本。"
+            
+            # 3. 执行Maven构建命令
+            # 此处使用了 -DskipTests 跳过测试，如需要运行测试请移除
+            mvn clean package -DskipTests
+            
+            echo "=== Maven 构建完成 ==="
+            # 可选：列出生成的JAR包，确认构建成功
+            ls -la target/*.jar 2>/dev/null && echo "JAR文件生成成功。" || echo "未找到JAR文件。"
