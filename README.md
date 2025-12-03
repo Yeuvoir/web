@@ -1,12 +1,20 @@
 # Simple Java Socket HTTP
 
-纯 Java Socket 实现的迷你 HTTP 服务器与客户端（含 Swing GUI 客户端），满足作业要求。
+一个纯 Java Socket 实现的迷你 HTTP 服务器与客户端（含 Swing GUI 客户端），通过底层 Socket 通信完整模拟 HTTP 协议的核心功能。
 
-## 功能概要
+## 项目概述
 
-# Simple Java Socket HTTP
+本项目是一个 HTTP 服务器和客户端实现，旨在深入理解 HTTP 协议的工作原理。不依赖任何第三方框架，完全使用 Java 标准库实现，涵盖了 HTTP 协议的核心概念，包括请求解析、响应构建、状态码处理、会话管理、文件上传等功能。
 
-纯 Java Socket 实现的迷你 HTTP 服务器与客户端（含 Swing GUI 客户端），通过底层 Socket 通信模拟 HTTP 协议的核心功能。
+### 技术特点
+
+- **纯 Java 实现**：仅使用 Java 标准库，无第三方依赖
+- **多线程架构**：使用线程池处理并发连接
+- **完整 HTTP 支持**：支持 HTTP/1.1 协议核心功能
+- **GUI 客户端**：基于 Swing 的图形化测试界面
+
+
+## HTTP 协议基础
 
 HTTP（超文本传输协议）是基于请求-响应模式的应用层协议，主要由以下部分组成：
 - **请求（Request）**
@@ -134,7 +142,6 @@ HTTP（超文本传输协议）是基于请求-响应模式的应用层协议，
   ```
 
 ## 项目结构与文件功能
-##  项目结构
 
 ```
 src/main/java/com/example/http/
@@ -251,166 +258,142 @@ Swing 实现的客户端 GUI，支持发送 GET/POST 请求，处理重定向、
 - **连接池**：内置连接池管理，支持复用 TCP 连接。
 - **实时日志**：清晰展示请求报文和响应报文详情。
 
-## 运行方式 (Maven)
+## 快速开始
 
-**编译打包：**
+### 环境要求
+- Java 17 或更高版本
+- Maven 3.8 及以上（推荐 3.9.x）
+
+### 编译打包
 ```bash
+# 清理并编译项目
 mvn clean package
+
 ```
 
-**启动服务器：**
+### 运行方式
+
+#### 启动 HTTP 服务器
 ```bash
-java -jar target/simple-http-socket-1.0-SNAPSHOT.jar server 8080[可选]
+# 使用默认端口 8080 启动服务器
+java -jar target/simple-http-socket-1.0-SNAPSHOT.jar server
+
+# 指定端口启动服务器
+java -jar target/simple-http-socket-1.0-SNAPSHOT.jar server 9090
 ```
 
-**启动客户端 GUI：**
+#### 启动 GUI 客户端
 ```bash
-java -jar target/simple-http-socket-1.0-SNAPSHOT.jar client 8080[可选]
-```
-具体演示步骤
+# 启动客户端（默认连接 localhost:8080）
+java -jar target/simple-http-socket-1.0-SNAPSHOT.jar client
 
-## 1.注册
-
-### 请求报文
-```http
-POST /register HTTP/1.1
-Host: localhost
-User-Agent: SimpleSocketClient/1.0
-Accept: */*
-Content-Type: application/x-www-form-urlencoded
-Content-Length: 27
-Connection: keep-alive
-username=test&password=test
+# 指定服务器端口启动客户端
+java -jar target/simple-http-socket-1.0-SNAPSHOT.jar client 9090
 ```
 
-#### 请求行: 
-POST /register HTTP/1.1
+### 使用示例
+启动服务器后，可以通过以下方式测试：
 
-方法: POST - 提交数据到服务器
+1. **浏览器访问**：打开浏览器访问 `http://localhost:8080`
+2. **GUI 客户端**：启动客户端进行图形化操作
 
-路径: /register - 请求的资源路径
 
-版本: HTTP/1.1 - HTTP协议版本
+## 功能演示
 
-#### 请求头:
+以下为主要功能的演示截图与说明，采用折叠分组，阅读更集中：
 
-Host: localhost - 目标主机
+### 1. 注册
+- 说明：可用 GUI 的快捷按钮，也可在资源路径手动构造 POST 请求体。
+<details>
+  <summary>展开查看注册演示</summary>
 
-User-Agent: SimpleSocketClient/1.0 - 客户端信息
+  - 正常注册：
+    
+    ![注册-正常](images/register-normal.png)
 
-Accept: */* - 可接受任何类型的响应
+  - 重复注册（409 Conflict）：
+    
+    ![注册-重复409](images/register-409.png)
+</details>
 
-Content-Type: application/x-www-form-urlencoded - 请求体格式
+### 2. 登录
+- 说明：同样支持 GUI 快捷按钮与手动 POST。未授权场景返回 401。
+<details>
+  <summary>展开查看登录演示</summary>
 
-Content-Length: 27 - 请求体长度
+  - 登录请求：
+    
+    ![登录-请求](images/login-request.png)
 
-Connection: keep-alive - 保持连接
+  - 401 未授权：
+    
+    ![登录-401](images/login-401.png)
+</details>
 
-#### 空行: 分隔头部和主体
+### 3. 获取服务器资源（GET）
+- 说明：首次 `local`（客户端）目录为空，服务端资源包含 `index.html` 等,GET到的资源会存入客户端也即/local文件夹下。
+<details>
+  <summary>展开查看 GET 与重定向/缓存/错误演示</summary>
 
-#### 请求体: 
-username=test&password=test
+  - 200 OK（根路径默认返回 `index.html`）：
+    
+    ![GET-200](images/get-200.png)
 
-表单数据，包含用户名和密码
-### 响应报文
-```
-HTTP/1.1 200 OK
-Content-Type: text/plain; charset=UTF-8
-Content-Length: 12
-Connection: keep-alive
-```
-状态行: HTTP/1.1 200 OK
+  - 301 Moved Permanently：
+    
+    ![GET-301](images/get-301.png)
 
-版本: HTTP/1.1 - HTTP协议版本
+  - 302 Found：
+    
+    ![GET-302](images/get-302.png)
 
-状态码: 200 - 表示请求成功
+  - 304 Not Modified（缓存验证）：
+    
+    ![GET-304](images/get-304.png)
 
-状态短语: OK - 状态码的文本描述
+  - 404 Not Found：
+    
+    ![GET-404](images/get-404.png)
 
-响应头:
+  - 长连接（Keep-Alive）验证：
+    
+    ![Keep-Alive](images/keep-alive.png)
 
-Content-Type: text/plain; charset=UTF-8
+  - 客户端成功获得资源
+  
+    ![clien-get-success](images/client-get-success.png)
+</details>
 
-内容类型: 纯文本
+### 4. 不支持的方法（DELETE 示例）
+- 说明：使用未实现的 HTTP 方法会返回 405。
+<details>
+  <summary>展开查看 405 方法不允许</summary>
 
-字符编码: UTF-8（支持中文）
+  - 405 Method Not Allowed：
+    
+    ![405](images/method-405.png)
+</details>
 
-Content-Length: 12
+### 5. 上传资源（422 非法命名）
+- 说明：支持文件上传；若命名非法（如包含 `[]`），返回 422。
+<details>
+  <summary>展开查看上传演示</summary>
 
-响应体长度：12字节（"注册成功"在UTF-8编码下占12字节）
+  - 上传 `test2.png`：
+    
+    ![上传-step1](images/upload-step1.png)
 
-Connection: keep-alive - 保持连接，可复用
+    ![上传-step2](images/upload-step2.png)
 
-空行: 分隔头部和主体
+  - 422 非法命名（示例 `test[]2.png`）：
+    
+    ![上传-422](images/upload-422.png)
+</details>
 
-响应体: 注册成功
+### 6. 服务器内部错误（500）
+- 说明：模拟触发除 0 异常，服务端返回 500。
+<details>
+  <summary>展开查看 500 错误</summary>
 
-服务器返回的实际内容
-
-纯文本格式，告知用户注册操作成功
-
-## 2.登录
-
-请求报文与login大同小异
-
-响应报文多了一行Set-Cookie: SID=b63675ed-f809-4437-aa1f-09d099a91e21; Path=/; HttpOnly
-
-在客户端存储数据，用于维持HTTP状态，让服务器能够识别用户。
-
-Cookie名称和值：
-
-SID=b63675ed-f809-4437-aa1f-09d099a91e21
-
-SID - Cookie名称
-
-b63675ed-f809-4437-aa1f-09d099a91e21 - Cookie值，这是一个UUID格式的字符串
-
-属性：
-
-Path=/ - Cookie的作用路径
-
-HttpOnly - 安全属性 防止javascript读取
-## 上传文件
-#### 请求报文
-```http
-POST /upload/test.pdf HTTP/1.1
-Host: localhost
-User-Agent: SimpleSocketClient/1.0
-Accept: */*
-Content-Type: multipart/form-data; boundary=----WSOCK1763355422477
-Content-Length: 1407
-Cookie: SID=afcd8746-c316-42d5-8ab7-1d4a33f34c2b
-Connection: keep-alive
-------WSOCK1763355422477
-Content-Disposition: form-data; name="file"; filename="test.pdf"
-Content-Type: application/octet-stream
-[文件内容: 1243 bytes]
-```
-
-上传文件到服务器的 /upload/test.pdf 路径
-
-使用multipart格式，边界字符串为 ----WSOCK1763355422477
-
-------WSOCK1763355422477--
-#### 响应报文
- 与上面大同小异
-## GET
-#### 请求报文
-```http
-GET /test.pdf HTTP/1.1
-Host: localhost
-User-Agent: SimpleSocketClient/1.0
-Accept: */*
-If-Modified-Since: Mon, 17 Nov 2025 12:57:02 CST
-Cookie: SID=4d7ae61a-5af4-4f1d-a789-b3f3170be723
-Connection: keep-alive
-```
-#### 响应报文
-```http
-HTTP/1.1 304 Not Modified
-Date: Mon, 17 Nov 2025 23:11:03 CST
-Last-Modified: Mon, 17 Nov 2025 12:57:02 CST
-Server: SimpleSocketServer/1.0
-Connection: keep-alive
-Content-Length: 0
-```
+  ![500](images/error-500.png)
+</details>
