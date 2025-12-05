@@ -303,6 +303,13 @@ public class SimpleHttpWorker implements Runnable {
             return redirect(HttpStatus.FOUND, "/");
         }
         if ("/new".equals(path)) {
+            // 访问 /new 需要已登录，即使是从 /old 自动跟随也要鉴权
+            String user = authenticate(req);
+            if (user == null) {
+                return new HttpResponse().status(HttpStatus.UNAUTHORIZED)
+                        .header("WWW-Authenticate", "Cookie realm=\"Simple\"")
+                        .bodyText("401 Unauthorized - 请先登录", "text/plain; charset=UTF-8");
+            }
             Path file = PUBLIC_ROOT.resolve("new.html");
             if (Files.exists(file)) {
                 return serveStatic(req, file, "new.html");
